@@ -5,13 +5,16 @@ Build a fully automated cold-outreach CLI pipeline. One input (company domain), 
 
 ## Pipeline Flow
 ```
-company.domain → Ocean.io → Prospeo → Eazyreach → Brevo
+company.domain → Ocean.io → Prospeo → Brevo
 ```
+> Update (per Vocallabs FAQ on the submission form, received after the brief):
+> their shared Eazyreach credit pool ran out for new applicants, so they told
+> everyone to skip Eazyreach and use Prospeo's own enrichment for the
+> LinkedIn → email step too. Prospeo now covers stage 2 *and* stage 3.
 
 1. **Ocean.io** — seed domain → list of lookalike company domains
-2. **Prospeo** — domains → C-suite/VP contacts + LinkedIn URLs
-3. **Eazyreach** — LinkedIn URLs → verified work emails
-4. **Brevo** — emails → personalized outreach sent
+2. **Prospeo** — domains → C-suite/VP contacts + LinkedIn URLs → verified work emails
+3. **Brevo** — emails → personalized outreach sent
 
 ## Usage (when done)
 ```bash
@@ -21,8 +24,7 @@ python pipeline.py stripe.com
 ## API Keys
 All stored in `.env` file:
 - `OCEAN_API_KEY` — Ocean.io
-- `PROSPEO_API_KEY` — Prospeo
-- `EAZYREACH_CLIENT_ID` + `EAZYREACH_CLIENT_SECRET` — Eazyreach
+- `PROSPEO_API_KEY` — Prospeo (covers contacts + email enrichment)
 - `BREVO_API_KEY` — Brevo
 
 ## Project Structure
@@ -34,9 +36,8 @@ outreach-pipeline/
 ├── stages/
 │   ├── __init__.py
 │   ├── ocean.py        ← stage 1: find lookalike companies
-│   ├── prospeo.py      ← stage 2: find decision makers
-│   ├── eazyreach.py    ← stage 3: resolve emails
-│   └── brevo.py        ← stage 4: send outreach
+│   ├── prospeo.py      ← stage 2: find decision makers + resolve verified emails
+│   └── brevo.py        ← stage 3: send outreach
 ├── requirements.txt
 └── .gitignore
 ```
@@ -46,21 +47,18 @@ outreach-pipeline/
 - [x] Private email: ravikiran@ravikiranreddy.online (DNS propagating)
 - [x] Ocean.io account (logged in with college email)
 - [x] Prospeo account + API key
-- [x] Eazyreach account (phone: +919676312146) + Client ID + Secret
 - [x] Brevo account + API key
-- [x] .env file with all 4 API keys
+- [x] .env file with the 3 API keys this build now needs
 
 ## What's Left
-- [x] Read Ocean.io, Prospeo, Eazyreach, Brevo API docs
+- [x] Read Ocean.io, Prospeo, Brevo API docs
 - [x] Build stages/ocean.py
-- [x] Build stages/prospeo.py
-- [x] Build stages/eazyreach.py
+- [x] Build stages/prospeo.py (contacts + email enrichment)
 - [x] Build stages/brevo.py
 - [x] Build pipeline.py (main entrypoint with safety checkpoint)
-- [x] Test end to end (Ocean.io + Prospeo verified live; Eazyreach endpoint
-      paths need confirming against the dashboard docs at docs.eazyreach.app;
-      Brevo needs the run machine's IP whitelisted at
-      app.brevo.com/security/authorised_ips before a live send)
+- [x] Test end to end against live APIs (Ocean.io, Prospeo, Brevo all
+      verified live; Brevo IP allowlisted at
+      app.brevo.com/security/authorised_ips)
 - [ ] Record demo video (explaino.app)
 - [ ] Submit on jobapply.site
 
@@ -76,4 +74,3 @@ June 8, 2026 EOD
 - Must have a safety checkpoint before emails fire (show summary, ask y/N)
 - Clean modular code — one stage = one file
 - Handle rate limits, missing contacts, partial failures gracefully
-- Eazyreach needs Client ID + Client Secret (OAuth style, not a simple API key)

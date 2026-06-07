@@ -5,30 +5,35 @@ Usage:
     python pipeline.py <company.domain>
 
 One seed domain goes in. Ocean.io expands it into lookalikes, Prospeo finds
-decision-makers at each one, Eazyreach resolves their LinkedIn profiles into
-verified work emails, and Brevo sends each of them a personalized note —
-with one safety checkpoint before anything actually goes out.
+decision-makers at each one and resolves their verified work emails, and
+Brevo sends each of them a personalized note — with one safety checkpoint
+before anything actually goes out.
+
+Note: the original brief had Eazyreach handling the LinkedIn -> email step,
+but Vocallabs' own FAQ said to skip it (their shared credit pool is
+exhausted) and use Prospeo's enrichment for that too — so Prospeo now covers
+both stage 2 and stage 3.
 """
 
 import sys
 
 from dotenv import load_dotenv
 
-from stages import brevo, eazyreach, ocean, prospeo
+from stages import brevo, ocean, prospeo
 
 LOOKALIKE_LIMIT = 10
 CONTACTS_PER_COMPANY = 3
 
 
 def run(seed_domain: str) -> None:
-    print(f"\n[1/4] Ocean.io — finding companies that look like {seed_domain}...")
+    print(f"\n[1/3] Ocean.io — finding companies that look like {seed_domain}...")
     lookalikes = ocean.find_lookalike_companies(seed_domain, limit=LOOKALIKE_LIMIT)
     if not lookalikes:
         print("No lookalike companies came back — nothing to do.")
         return
     print(f"  found {len(lookalikes)} lookalike companies: {', '.join(lookalikes)}")
 
-    print(f"\n[2/4] Prospeo — finding decision-makers at each company...")
+    print(f"\n[2/3] Prospeo — finding decision-makers and resolving verified emails...")
     contacts: list[dict] = []
     for domain in lookalikes:
         try:
@@ -43,8 +48,7 @@ def run(seed_domain: str) -> None:
         print("No decision-makers surfaced — nothing to do.")
         return
 
-    print(f"\n[3/4] Eazyreach — resolving LinkedIn profiles into verified work emails...")
-    resolved = eazyreach.resolve_emails(contacts)
+    resolved = prospeo.resolve_emails(contacts)
     print(f"  resolved {len(resolved)}/{len(contacts)} contacts to a verified email")
 
     if not resolved:
@@ -55,7 +59,7 @@ def run(seed_domain: str) -> None:
         print("\nAborted before sending — no emails went out.")
         return
 
-    print(f"\n[4/4] Brevo — sending personalized outreach...")
+    print(f"\n[3/3] Brevo — sending personalized outreach...")
     results = brevo.send_outreach(resolved)
     _print_send_summary(results)
 
