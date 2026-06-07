@@ -41,15 +41,19 @@ class EazyreachClient:
         if self._token and time.time() < self._token_expires_at:
             return self._token
 
-        response = requests.post(
-            TOKEN_URL,
-            data={
-                "grant_type": "client_credentials",
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-            },
-            timeout=30,
-        )
+        try:
+            response = requests.post(
+                TOKEN_URL,
+                data={
+                    "grant_type": "client_credentials",
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                },
+                timeout=30,
+            )
+        except requests.RequestException as exc:
+            raise EazyreachError(f"Couldn't reach Eazyreach's auth endpoint ({TOKEN_URL}): {exc}") from exc
+
         if not response.ok:
             raise EazyreachError(f"Eazyreach auth failed ({response.status_code}): {response.text}")
 
@@ -64,12 +68,15 @@ class EazyreachClient:
         token = self._get_token()
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = requests.get(
-            RESOLVE_URL,
-            headers=headers,
-            params={"linkedin_url": linkedin_url},
-            timeout=30,
-        )
+        try:
+            response = requests.get(
+                RESOLVE_URL,
+                headers=headers,
+                params={"linkedin_url": linkedin_url},
+                timeout=30,
+            )
+        except requests.RequestException as exc:
+            raise EazyreachError(f"Couldn't reach Eazyreach's resolve endpoint ({RESOLVE_URL}): {exc}") from exc
 
         if response.status_code == 401:
             # Token may have just expired — refresh once and retry.

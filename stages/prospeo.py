@@ -50,10 +50,11 @@ def find_decision_makers(domain: str, max_contacts: int = 5) -> list[dict]:
         if response.status_code == 429:
             time.sleep(2)
             continue
+        payload = response.json() if response.content else {}
+        if payload.get("error_code") == "NO_RESULTS":
+            break
         if not response.ok:
             raise ProspeoError(f"Prospeo search failed for {domain} ({response.status_code}): {response.text}")
-
-        payload = response.json()
         if payload.get("error"):
             raise ProspeoError(f"Prospeo returned an error for {domain}: {payload}")
 
