@@ -9,10 +9,9 @@ decision-makers at each one and resolves their verified work emails, and
 Brevo sends each of them a personalized note — with one safety checkpoint
 before anything actually goes out.
 
-Note: the original brief had Eazyreach handling the LinkedIn -> email step,
-but Vocallabs' own FAQ said to skip it (their shared credit pool is
-exhausted) and use Prospeo's enrichment for that too — so Prospeo now covers
-both stage 2 and stage 3.
+(Used to be a 4-stage thing with Eazyreach doing the LinkedIn -> email part,
+but they ran out of credits to give out and told everyone in the FAQ to just
+use Prospeo for that too. One less API to juggle, no real downside.)
 """
 
 import sys

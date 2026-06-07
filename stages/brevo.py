@@ -1,4 +1,4 @@
-"""Stage 4 — Brevo: send each resolved contact a personalized outreach email.
+"""Stage 3 — Brevo: send each resolved contact a personalized outreach email.
 
 Docs: https://developers.brevo.com/docs/send-a-transactional-email
 Auth: `api-key` header carrying the API key.

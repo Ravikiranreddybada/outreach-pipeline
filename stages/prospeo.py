@@ -5,11 +5,13 @@ Docs:
   https://prospeo.io/api-docs/enrich-person  (resolve a person to a verified email)
 Auth: `X-KEY` header carrying the API key.
 
-Vocallabs originally pointed us at Eazyreach for the LinkedIn -> email step,
-but their FAQ later said to skip it (credits are limited) and use Prospeo's
-own enrichment for both contacts *and* emails — which is what this module
-now does end to end. We filter on seniority so we only surface C-suite and
-VP-level people, since those are the ones worth mailing.
+(Originally this stage just found people and Eazyreach handled the
+LinkedIn -> email lookup. Eazyreach ran out of credits to hand out, so per
+their FAQ I switched that lookup over to Prospeo's own enrich endpoint —
+saved a whole integration and it works fine.)
+
+Only keeping C-suite / VP / founder folks here — anyone more junior isn't
+really worth the email.
 """
 
 import os
