@@ -1,11 +1,12 @@
 """Stage 3 — Eazyreach: turn LinkedIn profile URLs into verified work emails.
 
 Eazyreach is OAuth-style: you trade a client id + secret for a short-lived
-bearer token, then call the resolver with that token. Eazyreach doesn't
-publish a public API reference, so these endpoint paths follow the standard
-client-credentials shape documented in their dashboard. If the paths drift,
-update TOKEN_URL / RESOLVE_URL — the surrounding flow (cache the token, retry
-on 401) stays the same.
+bearer token, then call the resolver with that token. Their reference docs
+live behind login at https://docs.eazyreach.app (account required, see
+.env.example for the credentials this client expects). These two constants
+are the only things that should need updating once you're looking at the
+real spec from your dashboard — the surrounding flow (cache the token, retry
+once on 401, back off on 429) is written to be endpoint-agnostic.
 """
 
 import os

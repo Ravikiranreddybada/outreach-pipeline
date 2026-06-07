@@ -31,6 +31,11 @@ pip install -r requirements.txt
 cp .env.example .env   # then fill in your API keys
 ```
 
+> **Brevo IP allowlist:** Brevo blocks transactional sends from IPs it
+> hasn't seen before (you'll get a 401 `unrecognised IP address`). Before
+> your first run, authorize the machine you're running from at
+> https://app.brevo.com/security/authorised_ips.
+
 ## Usage
 
 ```bash
