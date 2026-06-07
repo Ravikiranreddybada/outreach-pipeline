@@ -14,7 +14,7 @@ import requests
 
 SEARCH_PERSON_URL = "https://api.prospeo.io/search-person"
 
-TARGET_SENIORITIES = ["Founder/Owner", "CXO", "VP"]
+TARGET_SENIORITIES = ["Founder/Owner", "C-Suite", "Vice President"]
 
 
 class ProspeoError(Exception):
@@ -61,14 +61,15 @@ def find_decision_makers(domain: str, max_contacts: int = 5) -> list[dict]:
         if not results:
             break
 
-        for person in results:
+        for entry in results:
+            person = entry.get("person") or entry
             linkedin_url = person.get("linkedin_url")
             if not linkedin_url:
                 continue
             contacts.append(
                 {
-                    "name": person.get("name"),
-                    "job_title": person.get("job_title"),
+                    "name": person.get("full_name"),
+                    "job_title": person.get("current_job_title"),
                     "linkedin_url": linkedin_url,
                     "company_domain": domain,
                 }
@@ -77,7 +78,7 @@ def find_decision_makers(domain: str, max_contacts: int = 5) -> list[dict]:
                 break
 
         pagination = payload.get("pagination") or {}
-        if not pagination.get("more_results", False):
+        if pagination.get("current_page", page) >= pagination.get("total_page", page):
             break
         page += 1
 

@@ -47,11 +47,12 @@ def find_lookalike_companies(seed_domain: str, limit: int = 20) -> list[str]:
             raise OceanError(f"Ocean.io search failed ({response.status_code}): {response.text}")
 
         payload = response.json()
-        results = payload.get("companies") or payload.get("results") or []
+        results = payload.get("companies") or []
         if not results:
             break
 
-        for company in results:
+        for entry in results:
+            company = entry.get("company") or entry
             domain = company.get("domain") or company.get("domainName")
             if domain and domain.lower() != seed_domain.lower():
                 domains.append(domain)
