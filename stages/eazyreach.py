@@ -14,8 +14,8 @@ import time
 
 import requests
 
-TOKEN_URL = "https://api.eazyreach.app/oauth/token"
-RESOLVE_URL = "https://api.eazyreach.app/v1/resolve-email"
+TOKEN_URL = "https://api.superflow.run/b2b/createAuthToken/"
+RESOLVE_URL = "https://api.superflow.run/b2b/linkedin-emails"
 
 
 class EazyreachError(Exception):
@@ -44,10 +44,9 @@ class EazyreachClient:
         try:
             response = requests.post(
                 TOKEN_URL,
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": self.client_id,
-                    "client_secret": self.client_secret,
+                json={
+                    "clientId": self.client_id,
+                    "clientSecret": self.client_secret,
                 },
                 timeout=30,
             )
@@ -58,7 +57,9 @@ class EazyreachClient:
             raise EazyreachError(f"Eazyreach auth failed ({response.status_code}): {response.text}")
 
         payload = response.json()
-        self._token = payload["access_token"]
+        self._token = payload.get("authToken") or payload.get("auth_token")
+        if not self._token:
+            raise EazyreachError(f"Eazyreach auth response did not contain 'authToken' or 'auth_token': {payload}")
         # Refresh a little early so we never call out with a stale token.
         self._token_expires_at = time.time() + payload.get("expires_in", 3600) - 60
         return self._token
@@ -66,13 +67,16 @@ class EazyreachClient:
     def resolve_email(self, linkedin_url: str) -> str | None:
         """Return a verified work email for `linkedin_url`, or None if not found."""
         token = self._get_token()
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
 
         try:
-            response = requests.get(
+            response = requests.post(
                 RESOLVE_URL,
                 headers=headers,
-                params={"linkedin_url": linkedin_url},
+                json={"linkedinUrl": linkedin_url},
                 timeout=30,
             )
         except requests.RequestException as exc:
@@ -82,7 +86,12 @@ class EazyreachClient:
             # Token may have just expired — refresh once and retry.
             self._token = None
             headers["Authorization"] = f"Bearer {self._get_token()}"
-            response = requests.get(RESOLVE_URL, headers=headers, params={"linkedin_url": linkedin_url}, timeout=30)
+            response = requests.post(
+                RESOLVE_URL,
+                headers=headers,
+                json={"linkedinUrl": linkedin_url},
+                timeout=30,
+            )
 
         if response.status_code == 404:
             return None
@@ -93,9 +102,12 @@ class EazyreachClient:
             raise EazyreachError(f"Eazyreach resolve failed for {linkedin_url} ({response.status_code}): {response.text}")
 
         payload = response.json()
-        email = payload.get("email")
-        if email and payload.get("verified", True):
-            return email
+        emails = payload.get("emails", [])
+        for item in emails:
+            email = item.get("email")
+            verification = item.get("verification")
+            if email and verification == "verified":
+                return email
         return None
 
 
