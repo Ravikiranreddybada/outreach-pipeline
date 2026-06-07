@@ -51,13 +51,16 @@ outreach-pipeline/
 - [x] .env file with all 4 API keys
 
 ## What's Left
-- [ ] Read Ocean.io, Prospeo, Eazyreach, Brevo API docs
-- [ ] Build stages/ocean.py
-- [ ] Build stages/prospeo.py
-- [ ] Build stages/eazyreach.py
-- [ ] Build stages/brevo.py
-- [ ] Build pipeline.py (main entrypoint with safety checkpoint)
-- [ ] Test end to end
+- [x] Read Ocean.io, Prospeo, Eazyreach, Brevo API docs
+- [x] Build stages/ocean.py
+- [x] Build stages/prospeo.py
+- [x] Build stages/eazyreach.py
+- [x] Build stages/brevo.py
+- [x] Build pipeline.py (main entrypoint with safety checkpoint)
+- [x] Test end to end (Ocean.io + Prospeo verified live; Eazyreach endpoint
+      paths need confirming against the dashboard docs at docs.eazyreach.app;
+      Brevo needs the run machine's IP whitelisted at
+      app.brevo.com/security/authorised_ips before a live send)
 - [ ] Record demo video (explaino.app)
 - [ ] Submit on jobapply.site
 
