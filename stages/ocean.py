@@ -16,11 +16,10 @@ class OceanError(Exception):
 
 
 def find_lookalike_companies(seed_domain: str, limit: int = 20) -> list[str]:
-    """Return up to `limit` company domains that look like `seed_domain`.
+    """Return up to `limit` domains that look like `seed_domain`.
 
-    Ocean.io's lookalike search takes a seed domain and returns companies with
-    similar firmographics (size, industry, market). We page through results
-    with `searchAfter` until we hit the limit or run out of matches.
+    Just throwing the seed domain at Ocean's lookalike search and paging
+    through with `searchAfter` until we've got enough or it dries up.
     """
     api_token = os.environ.get("OCEAN_API_KEY")
     if not api_token:

@@ -55,11 +55,10 @@ def _build_email(contact: dict, sender_name: str) -> dict:
 
 
 def send_outreach(contacts: list[dict]) -> list[dict]:
-    """Send a personalized email to every contact and report what happened.
+    """Fire off an email to each contact, return what happened with each one.
 
-    Returns a list of `{contact, status, detail}` so the caller can show the
-    user a clear summary of sends, skips, and failures — partial failures here
-    must never crash the run.
+    One bad send shouldn't kill the rest — so we just record sent/failed per
+    contact and let pipeline.py print the summary at the end.
     """
     api_key = os.environ.get("BREVO_API_KEY")
     sender_email = os.environ.get("SENDER_EMAIL")

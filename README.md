@@ -22,10 +22,9 @@ company.domain → Ocean.io → Prospeo → Brevo
 Every stage's output feeds the next one automatically — the only manual step
 is confirming the send at the safety checkpoint.
 
-> The original brief routed the LinkedIn → email step through Eazyreach.
-> Vocallabs' own FAQ later said to skip it (their shared credit pool ran
-> out) and use Prospeo's enrichment for that step too — so Prospeo now
-> covers contact discovery *and* email resolution.
+> Heads up — the brief originally had Eazyreach doing the LinkedIn → email
+> step. They ran out of credits to hand around though, so the FAQ said to
+> just use Prospeo for that too. Saved an integration, works fine.
 
 ## Setup
 
@@ -69,12 +68,13 @@ stages/
   brevo.py          contact -> personalized outreach email, sent via Brevo
 ```
 
-## Notes on resilience
+## A few things worth knowing
 
-- Rate limits (HTTP 429) are retried with a short backoff instead of crashing
-  the run.
-- A company with no contacts, or a contact whose email can't be verified,
-  is simply skipped — partial data never stops the pipeline.
-- Email enrichment skips the `only_verified_email` filter (which would burn a
-  credit on every miss) and instead checks the returned status itself, only
-  keeping addresses Prospeo marks `VERIFIED` and `revealed`.
+- Rate limits (429s) get a short backoff and a retry instead of blowing up
+  the run. Hit Prospeo's *daily* quota a few times while testing this — that
+  one fails fast with a clear message instead of spinning forever.
+- A company with no contacts, or someone whose email doesn't check out, just
+  gets skipped. No reason to let one bad apple stop the whole run.
+- Skipped Prospeo's `only_verified_email` flag on purpose — it still eats a
+  credit even on a miss. Cheaper to grab whatever it returns and check the
+  status ourselves, only keeping stuff marked `VERIFIED` + `revealed`.

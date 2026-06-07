@@ -31,11 +31,10 @@ class ProspeoError(Exception):
 
 
 def find_decision_makers(domain: str, max_contacts: int = 5) -> list[dict]:
-    """Return up to `max_contacts` C-suite/VP people at `domain`.
+    """Grab up to `max_contacts` C-suite/VP people at `domain`.
 
-    Each contact dict has at least `name`, `job_title`, `linkedin_url`, and
-    `company_domain` — everything `enrich_email` needs to resolve a verified
-    work email next.
+    Returns dicts with name, job_title, linkedin_url, company_domain — that's
+    all enrich_email needs to go find an actual address next.
     """
     api_key = os.environ.get("PROSPEO_API_KEY")
     if not api_key:
@@ -107,11 +106,11 @@ def find_decision_makers(domain: str, max_contacts: int = 5) -> list[dict]:
 
 
 def enrich_email(linkedin_url: str) -> str | None:
-    """Resolve a LinkedIn profile URL to a verified work email, or None.
+    """Turn a LinkedIn URL into a verified email, or None if there isn't one.
 
-    We deliberately don't pass `only_verified_email`: that flag makes Prospeo
-    burn a credit on every miss too. Instead we ask for whatever it has and
-    only keep the result if its status comes back VERIFIED.
+    Not passing `only_verified_email` here on purpose — that flag still costs
+    a credit even when it comes back empty. Cheaper to just ask for whatever
+    they've got and throw it away ourselves if it's not VERIFIED + revealed.
     """
     api_key = os.environ.get("PROSPEO_API_KEY")
     if not api_key:
@@ -145,10 +144,9 @@ def enrich_email(linkedin_url: str) -> str | None:
 
 
 def resolve_emails(contacts: list[dict]) -> list[dict]:
-    """Attach a verified `email` to each contact dict that has one.
+    """Look up an email for each contact, drop the ones that come back empty.
 
-    Contacts whose LinkedIn profile can't be enriched into a verified,
-    revealed email are dropped — Brevo only ever sees deliverable addresses.
+    Brevo should only ever see addresses we're fairly sure are real.
     """
     resolved = []
     for contact in contacts:
