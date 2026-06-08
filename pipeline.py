@@ -55,7 +55,7 @@ def run(seed_domain: str) -> None:
         print("No verified emails came back — nothing to send.")
         return
 
-    choice = _confirm_send(seed_domain, resolved)
+    choice = _confirm_send(seed_domain, resolved, sourced_count=len(lookalikes))
     if choice == "abort":
         print("\nAborted before sending — no emails went out.")
         return
@@ -74,17 +74,25 @@ def run(seed_domain: str) -> None:
     _print_send_summary(results)
 
 
-def _confirm_send(seed_domain: str, contacts: list[dict]) -> str:
-    """The safety checkpoint — show exactly who's about to get mailed and ask.
+def _confirm_send(seed_domain: str, contacts: list[dict], sourced_count: int = 0) -> str:
+    """The safety checkpoint — show a summary of exactly who's about to get
+    mailed and ask before anything fires.
 
     Returns one of:
       "real"  — send to the actual contacts (typed 'y')
       "test"  — send everything to TEST_RECIPIENT instead (typed 'test')
       "abort" — don't send anything (anything else, incl. just Enter)
     """
+    companies = sorted({c["company_domain"] for c in contacts})
+
     print(f"\n{'=' * 60}")
-    print(f"READY TO SEND — {len(contacts)} email(s) for seed domain '{seed_domain}'")
-    print(f"{'=' * 60}")
+    print(f"READY TO SEND — summary for seed domain '{seed_domain}'")
+    print(f"{'-' * 60}")
+    print(f"  • {len(contacts)} personalized email(s) across {len(companies)} company(ies)")
+    if sourced_count:
+        print(f"  • sourced from {sourced_count} lookalike company(ies) Ocean.io returned")
+    print(f"  • companies: {', '.join(companies)}")
+    print(f"{'-' * 60}")
     for contact in contacts:
         name = contact.get("name") or "(unknown name)"
         title = contact.get("job_title") or "(unknown title)"
