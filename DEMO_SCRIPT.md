@@ -1,132 +1,139 @@
-# Demo Recording Script (explaino.app)
+# Demo recording notes (explaino.app)
 
-Target length: ~4-6 minutes. Record in a terminal with a clean, large font.
-Have the project open in your editor in a second window/tab for the code walk.
-
----
-
-## 1. Cold open (15-20s)
-
-Say, on camera or in voiceover:
-
-> "This is an automated cold-outreach pipeline. You give it one company
-> domain, and it runs three stages end to end with zero manual steps in
-> between — finding lookalike companies, surfacing their decision-makers
-> with verified emails, and sending each of them a personalized outreach
-> note. The only manual step is a safety checkpoint before anything actually
-> sends."
+Aiming for ~4-6 min. Terminal with a big font, editor open in another tab
+for the code walk. Don't read this word for word on camera — just use it to
+remember what to hit.
 
 ---
 
-## 2. Show the one-line command (10s)
+## 1. Open (15-20s)
 
-Open a terminal in the project folder and show the command before running it:
+Something like:
+
+> "This is a cold-outreach pipeline — give it one company domain and it runs
+> three stages back to back with no manual steps in the middle: finds
+> lookalike companies, finds their decision-makers with verified emails, and
+> sends each of them a personalized note. Only thing it stops for is a
+> safety check right before it actually sends anything."
+
+---
+
+## 2. Run it (10s)
+
+Show the command before hitting enter:
 
 ```bash
 python pipeline.py razorpay.com
 ```
 
-> "One input — a seed domain. Everything after this is automatic."
-
-Press enter.
+> "One domain in. Everything else from here is automatic."
 
 ---
 
-## 3. Narrate each stage as it streams (90-120s)
+## 3. Let it run, narrate as it goes (90-120s)
 
-Let the output scroll — don't talk over the API calls, just point at what's
-happening as each block appears:
+Don't talk over the API calls — just call out what's happening as each block
+prints:
 
-- **`[1/3] Ocean.io`** — "It expands the seed domain into companies that look
-  like it — similar size, industry, market. Output: a clean list of domains."
-- **`[2/3] Prospeo`** — "For each of those companies, it finds C-suite and
-  VP-level decision-makers, then resolves each one to a verified work email —
-  no guessing, no catch-all addresses."
-- **`[3/3] Brevo`** — "And finally it's ready to send — but it stops here
-  first."
+- **`[1/3] Ocean.io`** — finds companies that look like the seed one, similar
+  size/industry/market, hands back a list of domains
+- **`[2/3] Prospeo`** — for each of those, finds C-suite/VP people and pulls
+  a verified email for each — not guesses, actual verified addresses
+- **`[3/3] Brevo`** — gets to the send step... and stops
 
 ---
 
-## 4. The safety checkpoint — your "good judgment" moment (45-60s)
+## 4. The checkpoint — this is the bit they actually care about (45-60s)
 
-This is the most important beat in the whole demo. When the
-`READY TO SEND — N email(s)...` summary appears:
+When `READY TO SEND — N email(s)...` shows up:
 
-> "Before anything actually fires, it shows me exactly who it's about to
-> email — name, title, company, address — and asks for confirmation."
+> "Before it fires anything it shows me exactly who's about to get an email —
+> name, title, company, address — and asks me to confirm."
 
-Type **`N`** and let it abort cleanly:
+Type **`N`**, let it bail cleanly:
 
-> "If I say no, nothing goes out. No partial sends, no surprises."
+> "Say no, nothing goes out. No half-sent batches."
 
-*(Optional, if you want to show a real send: run it again on a different/
-narrower domain, type `y`, and show the email landing in your inbox via
-Brevo. Only do this if you're comfortable sending a real — if test —
-outreach email.)*
+If you want to also show a real send going through — run it again on a
+narrower domain, type `y`, show it land in your inbox. Up to you whether
+that's worth doing on camera.
 
 ---
 
-## 5. Quick code walk (90-120s)
+## 5. Quick look at the code (90-120s)
 
-Switch to your editor. Keep this tight — show structure, not every line.
+Keep this short — structure over line-by-line.
 
-1. **`pipeline.py`** — "This is the entrypoint. It's maybe 100 lines: call
-   stage one, feed its output to stage two, feed that to stage three, and
-   own the safety checkpoint. No stage knows about the others."
-2. **`stages/` folder** — "One file per stage — `ocean.py`, `prospeo.py`,
-   `brevo.py`. Each is independently readable and testable."
-3. **Pick ONE integration detail to show off** — e.g. open `prospeo.py` and
-   point at:
-   - the `X-KEY` auth header
-   - the pagination loop (`current_page` / `total_page`)
-   - the `enrich_email` function — explain you deliberately *don't* pass
-     `only_verified_email=True` because that flag burns a credit on every
-     miss; instead you check the returned status yourself and only keep
-     emails marked `VERIFIED` and `revealed`.
-4. **Show one resilience detail** — e.g. the `try/except requests.RequestException`
-   wrapping, or the rate-limit retry cap with the daily-quota header check.
-   Say something like:
+1. **`pipeline.py`** — "entrypoint, ~100 lines. Calls each stage, passes the
+   output to the next, owns the confirm step. Stages don't know about each
+   other at all."
+2. **`stages/`** — one file per stage (`ocean.py`, `prospeo.py`, `brevo.py`),
+   each one doing exactly one job.
+3. Pop open `prospeo.py` and point at one or two of:
+   - the `X-KEY` header
+   - the pagination loop (`current_page`/`total_page`)
+   - `enrich_email` — mention you skip the `only_verified_email` flag because
+     it costs a credit even on a miss, so you check the status yourself
+4. Show a resilience bit — the `try/except requests.RequestException`, or
+   the rate-limit retry cap. Good line for this:
 
-   > "While building this I actually hit Prospeo's daily request quota during
-   > testing — so I added a check for their `x-daily-request-left` header
-   > that fails fast with a clear message instead of retrying forever."
+   > "Actually ran into Prospeo's daily request cap a few times while
+   > building this — so now it checks for that specific header and fails
+   > with a clear message instead of just retrying forever and going nowhere."
 
-   This is a *true story* — use it. It's exactly the kind of "handles rate
-   limits gracefully" detail they say they're grading on.
+   That's a real thing that happened, not a hypothetical — use it.
 
 ---
 
-## 6. The pivot story — "be honest" (30-45s)
+## 6. The Eazyreach swap — good "honesty" moment (30-45s)
 
-The brief originally routed LinkedIn → email through Eazyreach. Tell this
-story plainly — it shows you read instructions carefully AND adapt when
-they change:
+> "Original brief had a fourth stage — Eazyreach — turning LinkedIn profiles
+> into emails. I'd actually built and tested that integration live when
+> Vocallabs put out an FAQ saying their Eazyreach credits had run dry and to
+> just use Prospeo for that step instead. So I pulled Eazyreach out and
+> pointed that job at Prospeo's enrich endpoint — same pipeline, one fewer
+> moving part, same result."
 
-> "The original brief had a fourth stage — Eazyreach — resolving LinkedIn
-> profiles to emails. After I'd built it and tested the integration live,
-> Vocallabs' own FAQ said their shared Eazyreach credit pool had run out and
-> to use Prospeo's own enrichment for that step instead. So I removed
-> Eazyreach and pointed that responsibility at Prospeo's `enrich-person`
-> endpoint — same pipeline, one less hop, same end result."
-
-(You can show the git history briefly here — `git log --oneline` — to prove
-this was a real, incremental build, not a last-minute scramble.)
+Can pull up `git log --oneline` here if you want to back it up — shows it
+was a real incremental build and not a last-minute rewrite.
 
 ---
 
-## 7. Wrap (15s)
+## 7. Close (15s)
 
-> "That's the full pipeline — one domain in, personalized outreach out,
-> with a human checkpoint before anything sends. Code's on GitHub, link's
-> in the submission."
+> "That's the whole thing — one domain in, personalized outreach out, with a
+> human checking before anything sends. Repo's linked in the submission."
 
 ---
 
-## Recording checklist
+## Before you hit record
 
-- [ ] New Prospeo API key in `.env` (old one hit its daily quota during testing)
-- [ ] Brevo IP allowlisted at app.brevo.com/security/authorised_ips
-- [ ] Terminal font size bumped up so it's readable on screen
-- [ ] Do a silent dry run first so you know roughly how long each stage takes
-- [ ] Decide in advance: are you doing a real send (`y`) or just the abort (`N`)?
-- [ ] Have `git log --oneline` ready to show if you want to back up the pivot story
+- [ ] Fresh Prospeo key in `.env` (the old one ate its daily quota during testing)
+- [ ] Brevo IP allowlisted — done already
+- [ ] Bump the terminal font up
+- [ ] Run it once through quietly first so you know the timing/pacing
+- [ ] Decide ahead of time: abort with `N` only, or also show a real send with `y`
+- [ ] Keep `git log --oneline` handy in case you want to show the build history
+
+
+
+
+Test Run Steps
+Step 1: Open Terminal in the project folder
+Test Run Steps
+Step 1: Open Terminal in the project folder
+cd /Users/ravikiranreddybada/Documents/outreach-pipeline
+Step 2: Activate the virtual environment
+source .venv/bin/activate
+(You'll see (.venv) appear at the start of your terminal line)
+
+Step 3: Run the pipeline with a test domain
+python pipeline.py razorpay.com
+You can use any company domain — razorpay.com, stripe.com, zomato.com, etc.e
+Step 2: Activate the virtual environment
+source .venv/bin/activate
+(You'll see (.venv) appear at the start of your terminal line)
+
+Step 3: Run the pipeline with a test domain
+python pipeline.py razorpay.com
+You can use any company domain — razorpay.com, stripe.com, zomato.com, etc.

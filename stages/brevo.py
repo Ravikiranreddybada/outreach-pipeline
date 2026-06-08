@@ -54,11 +54,17 @@ def _build_email(contact: dict, sender_name: str) -> dict:
     }
 
 
-def send_outreach(contacts: list[dict]) -> list[dict]:
+def send_outreach(contacts: list[dict], test_recipient: str | None = None) -> list[dict]:
     """Fire off an email to each contact, return what happened with each one.
 
     One bad send shouldn't kill the rest — so we just record sent/failed per
     contact and let pipeline.py print the summary at the end.
+
+    If `test_recipient` is set, every email is redirected to that one address
+    instead of the real contact — same personalized copy, just routed to my
+    own inbox so I can show a real send landing without actually cold-mailing
+    strangers. The subject gets a [TEST → original@address] prefix so it's
+    obvious who it would have gone to.
     """
     api_key = os.environ.get("BREVO_API_KEY")
     sender_email = os.environ.get("SENDER_EMAIL")
@@ -71,10 +77,18 @@ def send_outreach(contacts: list[dict]) -> list[dict]:
 
     for contact in contacts:
         email = _build_email(contact, sender_name)
+
+        if test_recipient:
+            to_field = [{"email": test_recipient, "name": test_recipient}]
+            subject = f"[TEST → {contact['email']}] {email['subject']}"
+        else:
+            to_field = [{"email": contact["email"], "name": contact.get("name") or contact["email"]}]
+            subject = email["subject"]
+
         body = {
             "sender": {"name": sender_name, "email": sender_email},
-            "to": [{"email": contact["email"], "name": contact.get("name") or contact["email"]}],
-            "subject": email["subject"],
+            "to": to_field,
+            "subject": subject,
             "textContent": email["text"],
         }
 

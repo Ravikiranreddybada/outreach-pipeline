@@ -14,6 +14,7 @@ but they ran out of credits to give out and told everyone in the FAQ to just
 use Prospeo for that too. One less API to juggle, no real downside.)
 """
 
+import os
 import sys
 
 from dotenv import load_dotenv
@@ -54,17 +55,33 @@ def run(seed_domain: str) -> None:
         print("No verified emails came back — nothing to send.")
         return
 
-    if not _confirm_send(seed_domain, resolved):
+    choice = _confirm_send(seed_domain, resolved)
+    if choice == "abort":
         print("\nAborted before sending — no emails went out.")
         return
 
-    print(f"\n[3/3] Brevo — sending personalized outreach...")
-    results = brevo.send_outreach(resolved)
+    if choice == "test":
+        test_recipient = os.environ.get("TEST_RECIPIENT")
+        if not test_recipient:
+            print("\nTEST_RECIPIENT is not set in .env — can't do a test send.")
+            return
+        print(f"\n[3/3] Brevo — sending personalized outreach (TEST mode → {test_recipient})...")
+        results = brevo.send_outreach(resolved, test_recipient=test_recipient)
+    else:
+        print(f"\n[3/3] Brevo — sending personalized outreach...")
+        results = brevo.send_outreach(resolved)
+
     _print_send_summary(results)
 
 
-def _confirm_send(seed_domain: str, contacts: list[dict]) -> bool:
-    """The safety checkpoint — show exactly who's about to get mailed and ask."""
+def _confirm_send(seed_domain: str, contacts: list[dict]) -> str:
+    """The safety checkpoint — show exactly who's about to get mailed and ask.
+
+    Returns one of:
+      "real"  — send to the actual contacts (typed 'y')
+      "test"  — send everything to TEST_RECIPIENT instead (typed 'test')
+      "abort" — don't send anything (anything else, incl. just Enter)
+    """
     print(f"\n{'=' * 60}")
     print(f"READY TO SEND — {len(contacts)} email(s) for seed domain '{seed_domain}'")
     print(f"{'=' * 60}")
@@ -74,8 +91,12 @@ def _confirm_send(seed_domain: str, contacts: list[dict]) -> bool:
         print(f"  - {name} · {title} · {contact['company_domain']} · {contact['email']}")
     print(f"{'=' * 60}")
 
-    answer = input("Send these emails now? [y/N] ").strip().lower()
-    return answer == "y"
+    answer = input("Send now?  [y] real recipients   [test] my inbox only   [N] cancel: ").strip().lower()
+    if answer == "y":
+        return "real"
+    if answer == "test":
+        return "test"
+    return "abort"
 
 
 def _print_send_summary(results: list[dict]) -> None:
